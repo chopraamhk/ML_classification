@@ -12,8 +12,7 @@ from xgboost import XGBClassifier
 
 df = pd.read_csv('/data2/mchopra/yale_rnaseq/rnaseq_outputs/157_all_samples_tpm.tsv', sep="\t", index_col=0)
 
-labels = pd.read_csv("/data2/mchopra/yale_rnaseq/rnaseq_outputs/metadata_157_all.csv", sep=",", index_col=0
-)
+labels = pd.read_csv("/data2/mchopra/yale_rnaseq/rnaseq_outputs/metadata_157_all.csv", sep=",", index_col=0)
 
 # Remove genes with all zero expression
 keep_nonzero = (df > 0).sum(axis=1) > 0
