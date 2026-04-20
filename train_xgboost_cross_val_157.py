@@ -48,17 +48,7 @@ scale_pos_weight = neg / pos
 # =============================
 # Baseline XGBoost (no tuning)
 
-xgb_model = XGBClassifier(
-    n_estimators=100,
-    max_depth=6,
-    learning_rate=0.1,
-    subsample=0.8,
-    colsample_bytree=0.8,
-    scale_pos_weight=scale_pos_weight,
-    eval_metric="logloss",
-    random_state=42,
-    n_jobs=-1
-)
+xgb_model = XGBClassifer(scale_pos_weight=scale_pos_weight, eval_metric="logloss", random_state=42, n_jobs=-1)
 
 xgb_model.fit(X_train, y_train)
 
@@ -84,11 +74,14 @@ print("CV Std Dev:", scores.std())
 print("\nStarting hyperparameter tuning")
 
 param_grid = {
-    "n_estimators": [100, 200],
-    "max_depth": [3, 6, 10],
-    "learning_rate": [0.01, 0.1],
-    "subsample": [0.7, 0.8],
-    "colsample_bytree": [0.7, 0.8]
+    'n_estimators': [100, 200, 300, 500],
+    'learning_rate': [0.01, 0.1, 0.2],
+    'max_depth': [3, 6, 9],
+    'min_child_weight': [1, 3, 5],
+    'subsample': [0.7, 0.85, 1.0],
+    'colsample_bytree': [0.7, 0.85, 1.0],
+    'reg_alpha': [0, 0.01, 0.1, 1, 10, 100],
+    'reg_lambda': [0.5, 0.7, 1, 1.3]
 }
 
 xgb_model = XGBClassifier(scale_pos_weight=scale_pos_weight, eval_metric="logloss", random_state=42, n_jobs=-1)
@@ -108,7 +101,7 @@ print("\nConfusion Matrix (tuned):\n", confusion_matrix(y_test, y_pred))
 joblib.dump(best_model, "xgb_model.pkl")
 joblib.dump(grid_search, "xgb_grid_search.pkl")
 
-print("\nFinished hyperparameter tuning")
+print("\nFinished hyperparameter tuning and saving models - xgb_model.pkl (best_model) and xgb_grid_search.pkl - grid search model")
 
 # =============================
 # Nested cross-validation
@@ -124,7 +117,9 @@ grid_search = GridSearchCV(xgb_model, param_grid, cv=inner_cv, scoring="accuracy
 
 nested_scores = cross_val_score(grid_search, X, y, cv=outer_cv, n_jobs=-1)
 
-print("Nested CV Accuracy:", nested_scores.mean())
-print("Nested CV Std Dev:", nested_scores.std())
+np.save("nested_cv_accuracy_scores_xgboost.npy", nested_scores)
+print("\nNested CV estimates how good your modeling strategy is.")
+print("\nNested CV Accuracy:", nested_scores.mean())
+print("\nNested CV Std Dev:", nested_scores.std())
 
 print("\nPipeline ran successfully")
