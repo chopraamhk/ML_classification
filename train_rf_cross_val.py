@@ -13,12 +13,18 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_score
+from sklearn.metrics import roc_auc_score, roc_curve, RocCurveDisplay
+from sklearn.model_selection import cross_val_predict
+
+print("\nRunning Randomforest on 157 samples")
 
 #all samples loaded
-df = pd.read_csv('157_all_samples_tpm.tsv', sep = "\t", index_col=0)
+df = pd.read_csv('/data2/mchopra/yale_rnaseq/rnaseq_outputs/157_all_samples_tpm.tsv', sep = "\t", index_col=0)
 
 #all labels
-labels = pd.read_csv("metadata_157_all.csv",  sep = ",", index_col=0)
+labels = pd.read_csv("/data2/mchopra/yale_rnaseq/rnaseq_outputs/metadata_157_all.csv",  sep = ",", index_col=0)
+
+print("\nRemoving genes with 0 value in count matrix")
 
 #a bit of cleaning below
 keep_nonzero = (df > 0).sum(axis=1) > 0
@@ -35,9 +41,14 @@ labels = labels.reset_index().rename(columns={'index': 'Samples'})
 
 merged_df = pd.merge(df_T, labels, on='Samples', how='inner')
 
-X = merged_df.iloc[:,1:26147]
+print("\nX = 26147 features (genes)")
+print("\ny = 157 cases/controls")
 
+X = merged_df.iloc[:,1:26147]
 y = merged_df.iloc[:, 26148]
+
+
+print("\nsplitting the samples to 80:20 ratio (training:testing)")
 
 #no validation set 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
@@ -45,8 +56,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 #checking split of training and test dataset
 from collections import Counter
 
-print("Training set:", Counter(y_train))
-print("Testing set:", Counter(y_test))
+print("\nTraining set:", Counter(y_train))
+print("\nTesting set:", Counter(y_test))
 
 
 #this is just encoding characters to numerals like case/control - 1/0.
@@ -64,14 +75,15 @@ y_pred = rf_model.predict(X_test)
 test_accuracy = accuracy_score(y_test, y_pred)
 
 classification_rep = classification_report(y_test, y_pred)
-
+print("\n FIRST CHECK")
 print(f"test Accuracy (first check - without hypertuning): {test_accuracy:.4f}")
-
 print("\nClassification Report (first check):\n", classification_rep)
-
 print("\nConfusion Matrix (first check):\n", confusion_matrix(y_test, y_pred))
+print("\n FINISHED FIRST CHECK")
 
 #cross validation without hypertuning
+
+print("\nInitiating cross validation below")
 
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -83,27 +95,29 @@ scores = cross_val_score(
     scoring='accuracy'
 )
 
-print("Cross validation (CV) Accuracy (Second check - without hypertuning):", scores.mean())
-print("Std Dev in cross-validation (Second check - without hypertuning):", scores.std())
+print("\nCross validation (CV) Accuracy (Second check - without hypertuning):", scores.mean())
+print("\nStd Dev in cross-validation (Second check - without hypertuning):", scores.std())
 
 
 # assume X_train, y_train already loaded then above code would not be required
 
 rf_model = RandomForestClassifier(random_state=42)
 
-print("\nhypertuning model")
+print("\nhypertuning model initiating")
 
 param_grid = {
-    'n_estimators': [100, 200],
-    'max_depth': [None, 10],
-    'max_features': ["sqrt", "log2"],
-    'min_samples_leaf': [1, 2],
-    'bootstrap': [True,False],
-    'class_weight': [None, 'balanced']
+    'n_estimators': [10, 100, 200, 300, 500],
+    'max_depth': [None, 5, 10, 20, 30],
+    'max_features': ["sqrt", "log2", 0.5],
+    'min_samples_leaf': [1, 2, 4, 8],
+    'max_samples_split': [2, 5, 10]
+    'bootstrap': [True, False],
+    'class_weight': ['balanced']
 }
 
 print("\nhypertuning done")
-print("trying every combination in param_grid and for each combination - splitting the traiing data into 5 folds, training on 4 folds and validating on 1 fold, repeating 5 times and providing average performance")
+
+print("\ntrying every combination in param_grid and for each combination - splitting the traiing data into 5 folds, training on 4 folds and validating on 1 fold, repeating 5 times and providing average performance")
 
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -121,16 +135,21 @@ best_model = grid_search.best_estimator_
 
 y_pred = best_model.predict(X_test)
 
-print("\nTest results with CV and best tuned parameters")
-print("Test Accuracy with best tuned parameters:", accuracy_score(y_test, y_pred))
+print("\nBest parameters: ", grid_search.best_params_)
+print("\nBest score: ", grid_search.best_score_)
+
+print("\nTest results with CV and best grid tuned parameters")
+
+print("\nTest Accuracy with best grid tuned parameters:", accuracy_score(y_test, y_pred))
 
 print("\nClassification Report for test accuracy with best tuned parameters:\n", classification_report(y_test, y_pred))
 
 print("\nConfusion Matrix for test accuracy with best tuned parameters:\n", confusion_matrix(y_test, y_pred))
 
 joblib.dump(best_model, "rf_model.pkl")
-joblib.dump(grid_search, "grid_search.pkl")
+joblib.dump(grid_search, "rf_grid_search.pkl")
 
+print("\nFinished hyperparameter tuning and saving models - rf_model.pkl (best_model) and rf_grid_search.pkl - grid search model")
 
 print("\nFinished cross validation")
 
@@ -142,15 +161,6 @@ from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_sco
 from sklearn.ensemble import RandomForestClassifier
 
 rf_model = RandomForestClassifier(random_state=42)
-
-param_grid = {
-    'n_estimators': [100, 200],
-    'max_depth': [None, 10],
-    'max_features': ["sqrt", "log2"],
-    'min_samples_leaf': [1, 2],
-    'bootstrap': [True],
-    'class_weight': [None, "balanced"]
-}
 
 # INNER CV (for tuning)
 inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -173,8 +183,9 @@ nested_scores = cross_val_score(
     cv=outer_cv
 )
 
-print("Nested CV Accuracy:", nested_scores.mean())
-print("Std Dev:", nested_scores.std())
+print("\nNested CV estimates how good your modeling strategy is.")
 
+print("\nNested CV Accuracy:", nested_scores.mean())
+print("\nStd Dev:", nested_scores.std())
 
-print("pipeline ran successfully")
+print("\npipeline ran successfully")
