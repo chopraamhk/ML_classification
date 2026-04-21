@@ -3,7 +3,7 @@ Machine learning classification model based on gene expression count matrix usin
 
 #creating conda env 
 ```
-conda env create -f environment.yml
+conda env create -f ml_env.yml
 ```
 
 or 
