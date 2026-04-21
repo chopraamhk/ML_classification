@@ -19,10 +19,10 @@ from sklearn.model_selection import cross_val_predict
 print("\nRunning Randomforest on 157 samples")
 
 #all samples loaded
-df = pd.read_csv('157_all_samples_tpm.tsv', sep = "\t", index_col=0)
+df = pd.read_csv('/data2/mchopra/yale_rnaseq/rnaseq_outputs/157_all_samples_tpm.tsv', sep = "\t", index_col=0)
 
 #all labels
-labels = pd.read_csv("metadata_157_all.csv",  sep = ",", index_col=0)
+labels = pd.read_csv("/data2/mchopra/yale_rnaseq/rnaseq_outputs/metadata_157_all.csv",  sep = ",", index_col=0)
 
 print("\nRemoving genes with 0 value in count matrix")
 
@@ -87,6 +87,8 @@ print("\nInitiating cross validation below")
 
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
+#y_enc = LabelEncoder().fit.transform(y)
+
 scores = cross_val_score(
     rf_model,
     X,
@@ -110,7 +112,7 @@ param_grid = {
     'max_depth': [None, 5, 10, 20, 30],
     'max_features': ["sqrt", "log2", 0.5],
     'min_samples_leaf': [1, 2, 4, 8],
-    'max_samples_split': [2, 5, 10]
+    'min_samples_split': [2, 5, 10],
     'bootstrap': [True, False],
     'class_weight': ['balanced']
 }
