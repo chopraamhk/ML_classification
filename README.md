@@ -10,6 +10,6 @@ or
 
 ```
 conda create -n ml_env python=3.10
-conda install -c conda-forge numpy pandas matplotlib seaborn scikit-learn joblib
+conda install -c conda-forge numpy pandas matplotlib seaborn scikit-learn joblib xgboost
 ```
 
