@@ -23,10 +23,10 @@ from sklearn.pipeline import Pipeline
 print("\nRunning Randomforest on 118 samples")
 
 #all samples loaded
-df = pd.read_csv('/data2/mchopra/yale_rnaseq/rnaseq_outputs/salmon_gene_tpm_qc_passed.txt', sep = "\t", index_col=0)
+df = pd.read_csv('salmon_gene_tpm_qc_passed.txt', sep = "\t", index_col=0)
 
 #all labels
-labels = pd.read_csv("/data2/mchopra/yale_rnaseq/rnaseq_outputs/metadata_only_qc_passed.txt",  sep = ",", index_col=0)
+labels = pd.read_csv("metadata_only_qc_passed.txt",  sep = ",", index_col=0)
 
 print("\nRemoving genes with 0 value in count matrix")
 
