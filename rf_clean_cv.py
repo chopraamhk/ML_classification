@@ -71,7 +71,10 @@ print("\nTesting set:", Counter(y_test))
 #first check without any hypertuning and cross validation 
 rf_model = RandomForestClassifier(random_state=42, class_weight="balanced")
 
-rf_model.fit(X_train, y_train)
+#For imbalanced gene-expression classification, 
+#using class_weight='balanced' with Random Forest is usually a good default. 
+#It often improves recall for the minority class with minimal extra tuning.rf_model.fit(X_train, y_train)
+#gives more weightage to minority class samples 
 
 y_pred = rf_model.predict(X_test)
 
@@ -86,7 +89,7 @@ print("\nClassification Report (first check):\n", classification_rep)
 print("\nConfusion Matrix (first check):\n", confusion_matrix(y_test, y_pred))
 print("\n FINISHED FIRST CHECK")
 
-#cross validation without hypertuning
+# cross-validation without hypertuning
 
 print("\nInitiating cross validation below")
 
@@ -168,7 +171,7 @@ print("\nFinished hyperparameter tuning and saving models - rf_model_pipeline.pk
 print("\nFinished cross validation")
 
 print("\nInitiating nested cross validation")
-#nested cross validation 
+#nested cross-validation 
 #below is for nested cross-validation 
 
 from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_score
