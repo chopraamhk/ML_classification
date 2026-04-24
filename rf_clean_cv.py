@@ -34,9 +34,15 @@ print("\nRemoving genes with 0 value in count matrix")
 keep_nonzero = (df > 0).sum(axis=1) > 0
 df = df.loc[keep_nonzero]
 
+#Apply Log2 transformation (Standard for gene expresson to stabilize variance)
+df_log = np.log2(df + 1)
+
+
 #transpose
-df_T = df.T
+df_T = df_log.T
+
 df_T.index.name = "Samples"
+
 # if your samples are the index after transpose
 df_T = df_T.reset_index().rename(columns={'index': 'Samples'})
 
