@@ -21,8 +21,11 @@ labels = pd.read_csv("metadata_only_qc_passed.txt", sep=",", index_col=0)
 keep_nonzero = (df > 0).sum(axis=1) > 0
 df = df.loc[keep_nonzero]
 
+#Apply Log2 transformation (Standard for gene expresson to stabilize variance)
+df_log = np.log2(df + 1)
+
 # Transpose: samples as rows
-df_T = df.T.reset_index().rename(columns={'index': 'Samples'})
+df_T = df_log.T.reset_index().rename(columns={'index': 'Samples'})
 labels = labels.reset_index().rename(columns={'index': 'Samples'})
 
 # Merge expression + metadata
