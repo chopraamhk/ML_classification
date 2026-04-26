@@ -86,7 +86,7 @@ print("\nInitiating cross validation below")
 
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-scores = cross_val_score(pipeline, X, y, cv=cv, scoring="accuracy", n_jobs=2)
+scores = cross_val_score(pipeline, X, y, cv=cv, scoring="balanced_accuracy", n_jobs=2)
 
 print("\nCross validation (CV) Accuracy (Second check - without hypertuning):", scores.mean())
 print("\nStd Dev in cross-validation (Second check - without hypertuning):", scores.std())
@@ -106,7 +106,7 @@ param_grid = {
 
 print("\ntrying every combination in param_grid and for each combination - splitting the traiing data into 5 folds, training on 4 folds and validating on 1 fold, repeating 5 times and providing average performance")
 
-grid_search = GridSearchCV(pipeline, param_grid, cv=cv, scoring="accuracy", n_jobs=2, verbose=1)
+grid_search = GridSearchCV(pipeline, param_grid, cv=cv, scoring="balanced_accuracy", n_jobs=2, verbose=1)
 
 grid_search.fit(X_train, y_train)
 
@@ -139,7 +139,7 @@ print("\nInitiating nested cross-validation")
 inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-grid_search_nested = GridSearchCV(pipeline, param_grid, cv=inner_cv, scoring="accuracy", n_jobs=2)
+grid_search_nested = GridSearchCV(pipeline, param_grid, cv=inner_cv, scoring="balanced_accuracy", n_jobs=2)
 
 nested_scores = cross_val_score(grid_search_nested, X, y, cv=outer_cv, n_jobs=2)
 
