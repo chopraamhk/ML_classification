@@ -10,7 +10,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from xgboost import XGBClassifier
 from sklearn.pipeline import Pipeline
-# =============================
+
 # Load data
 
 df = pd.read_csv('salmon_gene_tpm_qc_passed.txt', sep="\t", index_col=0)
@@ -45,7 +45,7 @@ X.columns = [str(c).replace('[', '').replace(']', '').replace('<', '') for c in 
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y_raw)
 
-# =============================
+
 # Train-test split
 
 print("\nsplitting the samples to 80:20 ratio (training:testing)")
@@ -62,7 +62,7 @@ scale_pos_weight = neg / pos
 print("Training set:", Counter(y_train))
 print("Testing set:", Counter(y_test))
 
-# =============================
+
 # Baseline XGBoost (no tuning)
 
 pipeline = Pipeline([
@@ -80,8 +80,6 @@ print("\nClassification Report (baseline):\n", classification_report(y_test, y_p
 print("\nConfusion Matrix (baseline):\n", confusion_matrix(y_test, y_pred))
 print("\n FINISHED FIRST CHECK")
 
-
-# =============================
 # Cross-validation (no tuning)
 
 print("\nInitiating cross validation below")
@@ -93,7 +91,6 @@ scores = cross_val_score(pipeline, X, y, cv=cv, scoring="accuracy", n_jobs=2)
 print("\nCross validation (CV) Accuracy (Second check - without hypertuning):", scores.mean())
 print("\nStd Dev in cross-validation (Second check - without hypertuning):", scores.std())
 
-# =============================
 # Hyperparameter tuning (GridSearch)
 
 print("\nStarting hyperparameter tuning")
@@ -135,7 +132,6 @@ joblib.dump(grid_search, "xgb_grid_search_pipeline.pkl")
 
 print("\nFinished hyperparameter tuning and saving models - xgb_model_pipeline.pkl (best_model) and xgb_grid_search_pipeline.pkl - grid search model")
 
-# =============================
 # Nested cross-validation
 
 print("\nInitiating nested cross-validation")
