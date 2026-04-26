@@ -30,16 +30,43 @@ labels = pd.read_csv("metadata_only_qc_passed.txt",  sep = ",", index_col=0)
 
 print("\nRemoving genes with 0 value in count matrix")
 
+#Remove genes that are 0 in all samples (your code)
 #a bit of cleaning below
 keep_nonzero = (df > 0).sum(axis=1) > 0
 df = df.loc[keep_nonzero]
 
-#Apply Log2 transformation (Standard for gene expresson to stabilize variance)
-df_log = np.log2(df + 1)
+# Step 2: Keep genes expressed in at least 75% of samples with a value > 0
+threshold = 0
+min_percent = 0.75
+n_samples = df.shape[1]
 
+# Logic: Sum how many samples are > 0, then check if that sum is >= 75% of total samples
+keep_expressed = (df > threshold).sum(axis=1) > (min_percent * n_samples)
+df_filtered = df.loc[keep_expressed]
+
+print(f"Original genes: {len(keep_nonzero)}")
+print(f"Genes after 75% threshold filter: {len(df_filtered)}")
+
+#Apply Log2 transformation (Standard for gene expression to stabilise variance)
+df_log = np.log2(df_filtered + 1)
+
+#Variance filter 
+rv = df_log.var(axis=1)
+
+#top 50%, we find the 50th percentile cut-off
+q50 = rv.quantile(0.50)
+
+#keep genes where variance is greater than the 50th percentile 
+df_final = df_log[rv >= q50]
+
+#Results 
+print(f"Final gene count (Top 50% variable): {df_final.shape[0]}")
+
+# Summary of variances in the final set
+print(df_final.var(axis=1).describe())
 
 #transpose
-df_T = df_log.T
+df_T = df_final.T
 
 df_T.index.name = "Samples"
 
@@ -50,11 +77,11 @@ labels = labels.reset_index().rename(columns={'index': 'Samples'})
 
 merged_df = pd.merge(df_T, labels, on='Samples', how='inner')
 
-print("\nX = 25765 features (genes)")
+print("\nX = 7701 features (genes)")
 print("\ny = 118 cases/controls")
 
-X = merged_df.iloc[:,1:25765]
-y = merged_df.iloc[:, 25765]
+X = merged_df.iloc[:,1:7702]
+y = merged_df.iloc[:, 7703]
 
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(y)
