@@ -87,6 +87,7 @@ print("\nInitiating cross validation below")
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 scores = cross_val_score(pipeline, X, y, cv=cv, scoring="balanced_accuracy", n_jobs=2)
+#balanced_accuracy avoids inflated performance estimates on imbalanced datasets
 
 print("\nCross validation (CV) Accuracy (Second check - without hypertuning):", scores.mean())
 print("\nStd Dev in cross-validation (Second check - without hypertuning):", scores.std())
