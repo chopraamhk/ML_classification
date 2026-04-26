@@ -31,9 +31,12 @@ labels = labels.reset_index().rename(columns={'index': 'Samples'})
 # Merge expression + metadata
 merged_df = pd.merge(df_T, labels, on='Samples', how='inner')
 
+print("\nX = 7701 features (genes)")
+print("\ny = 118 cases/controls")
+
 # Define X and y
-X = merged_df.iloc[:, 1:25765]
-y_raw = merged_df.iloc[:, 25765]
+X = merged_df.iloc[:, 1:7702]
+y_raw = merged_df.iloc[:, 7703]
 
 #XGBoost can be picky about gene names (special characters)
 X.columns = [str(c).replace('[', '').replace(']', '').replace('<', '') for c in X.columns]
