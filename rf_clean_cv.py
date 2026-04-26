@@ -142,8 +142,9 @@ scores = cross_val_score(
     X,
     y_encoded,
     cv=cv,
-    scoring='accuracy'
+    scoring='balanced_accuracy'
 )
+#balanced_accuracy avoids inflated performance estimates on imbalanced datasets
 
 print("\nCross validation (CV) Accuracy (Second check - without hypertuning):", scores.mean())
 print("\nStd Dev in cross-validation (Second check - without hypertuning):", scores.std())
@@ -174,7 +175,7 @@ grid_search = GridSearchCV(
     pipeline,
     param_grid,
     cv=cv,
-    scoring='accuracy',
+    scoring='balanced_accuracy',
     n_jobs=2
 )
 
@@ -219,7 +220,7 @@ nested_gs = GridSearchCV(
     pipeline,
     param_grid,
     cv=inner_cv,
-    scoring='accuracy',
+    scoring='balanced_accuracy',
     n_jobs=-1
 )
 
