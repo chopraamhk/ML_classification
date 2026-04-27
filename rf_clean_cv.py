@@ -1,5 +1,5 @@
 #below was for 118 samples
-
+#score = balanced_accuracy for imbalancedness and accuracy for other times
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,7 +35,7 @@ print("\nRemoving genes with 0 value in count matrix")
 keep_nonzero = (df > 0).sum(axis=1) > 0
 df = df.loc[keep_nonzero]
 
-# Step 2: Keep genes expressed in at least 75% of samples with a value > 0
+# Keep genes expressed in at least 75% of samples with a value > 0
 threshold = 0
 min_percent = 0.75
 n_samples = df.shape[1]
@@ -101,7 +101,7 @@ print("\nTesting set:", Counter(y_test))
 #y_train = label_encoder.fit_transform(y_train)
 #y_test = label_encoder.transform(y_test)
 
-#first check without any hypertuning and cross validation 
+#first check without any hypertuning and cross-validation 
 rf_model = RandomForestClassifier(random_state=42, class_weight="balanced")
 
 #For imbalanced gene-expression classification, 
