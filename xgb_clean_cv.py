@@ -58,6 +58,7 @@ labels = labels.reset_index().rename(columns={'index': 'Samples'})
 # Merge expression + metadata
 merged_df = pd.merge(df_T, labels, on='Samples', how='inner')
 
+#this was manually checked in other jupyter-notebook 
 print("\nX = 7701 features (genes)")
 print("\ny = 118 cases/controls")
 
