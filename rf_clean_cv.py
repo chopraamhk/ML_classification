@@ -30,7 +30,7 @@ labels = pd.read_csv("metadata_only_qc_passed.txt",  sep = ",", index_col=0)
 
 print("\nRemoving genes with 0 value in count matrix")
 
-#Remove genes that are 0 in all samples (your code)
+#Remove genes that are 0 in all samples
 #a bit of cleaning below
 keep_nonzero = (df > 0).sum(axis=1) > 0
 df = df.loc[keep_nonzero]
@@ -126,8 +126,7 @@ print("\n FINISHED FIRST CHECK")
 
 print("\nInitiating cross validation below")
 
-
-# Use a Pipeline. Even if you don't scale, it's safer for future additions.
+# pipeline: it's safer for future additions.
 pipeline = Pipeline([
     ('scaler', StandardScaler()), # Keeps scaling logic inside CV folds
     ('rf', RandomForestClassifier(random_state=42, class_weight="balanced"))
@@ -144,13 +143,11 @@ scores = cross_val_score(
     cv=cv,
     scoring='balanced_accuracy'
 )
+
 #balanced_accuracy avoids inflated performance estimates on imbalanced datasets
 
 print("\nCross validation (CV) Accuracy (Second check - without hypertuning):", scores.mean())
 print("\nStd Dev in cross-validation (Second check - without hypertuning):", scores.std())
-
-
-# assume X_train, y_train already loaded then above code would not be required
 
 #rf_model = RandomForestClassifier(random_state=42)
 
