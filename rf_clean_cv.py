@@ -101,9 +101,6 @@ rf_model = RandomForestClassifier(random_state=42, class_weight="balanced")
 rf_model.fit(X_train, y_train)
 y_pred = rf_model.predict(X_test)
 
-#first check without any hypertuning and cross-validation 
-rf_model = RandomForestClassifier(random_state=42, class_weight="balanced")
-
 #For imbalanced gene-expression classification, 
 #using class_weight='balanced' with Random Forest is usually a good default. 
 #It often improves recall for the minority class with minimal extra tuning.
