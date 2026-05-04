@@ -124,7 +124,7 @@ print("\nStd Dev in cross-validation (Second check - without hypertuning):", sco
 print("\nStarting hyperparameter tuning")
 
 param_grid = {
-     'select__percentile': [20, 25, 45, 50]  
+     'select__percentile': [20, 25, 45, 50],  
     'xgb__n_estimators': [100, 300],
     'xgb__learning_rate': [0.01, 0.1],
     'xgb__max_depth': [3, 6],
