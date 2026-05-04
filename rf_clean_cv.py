@@ -18,6 +18,7 @@ from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_sco
 from sklearn.metrics import roc_auc_score, roc_curve, RocCurveDisplay
 from sklearn.model_selection import cross_val_predict
 from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import VarianceThreshold, SelectPercentile, f_classif
 
 print("\nRunning Randomforest on 118 samples")
 
@@ -125,7 +126,8 @@ print("\nInitiating cross validation below")
 
 # pipeline: it's safer for future additions.
 pipeline = Pipeline([
-    ('scaler', StandardScaler()), # Keeps scaling logic inside CV folds
+    ('scaler', StandardScaler()),
+#    ('selector', SelectPercentile(f_classif, percentile=25)), # Keep top 25% of genes
     ('rf', RandomForestClassifier(random_state=42, class_weight="balanced"))
 ])
 
