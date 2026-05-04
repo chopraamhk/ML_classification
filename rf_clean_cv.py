@@ -123,7 +123,7 @@ print("\nInitiating cross validation below")
 
 # pipeline: it's safer for future additions.
 pipeline = Pipeline([
-   ('var', VarianceThreshold(threshold=q75)),
+ #  ('var', VarianceThreshold(threshold=q75)),
     ('rf', RandomForestClassifier(random_state=42, class_weight="balanced"))
 ])
 
