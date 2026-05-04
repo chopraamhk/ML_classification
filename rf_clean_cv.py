@@ -153,7 +153,7 @@ print("\nStd Dev in cross-validation (Second check - without hypertuning):", sco
 print("\nhypertuning model initiating")
 
 param_grid = {
-    'select__percentile': [20, 25, 45, 50, 70, 80]  
+     'select__percentile': [20, 25, 45, 50],  
     'rf__n_estimators': [100, 300, 500],
     'rf__max_depth': [5, 10, 20],
     'rf__max_features': ["sqrt", "log2"],
