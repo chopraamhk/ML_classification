@@ -194,6 +194,11 @@ print("\nClassification Report for test accuracy with best tuned parameters:\n",
 
 print("\nConfusion Matrix for test accuracy with best tuned parameters:\n", confusion_matrix(y_test, y_pred_tuned))
 
+importances = best_model.named_steps['rf'].feature_importances_
+top_genes = X_train.columns[np.argsort(importances)[-20:]].tolist()
+print("Top 20 genes:", top_genes)
+joblib.dump(top_genes, "top_rf_genes.pkl")
+
 joblib.dump(best_model, "rf_pipeline_model.pkl")
 joblib.dump(grid_search, "rf_grid_search_pipeline.pkl")
 
