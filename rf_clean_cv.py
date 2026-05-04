@@ -1,4 +1,3 @@
-#below was for 118 samples
 #score = balanced_accuracy for imbalancedness and accuracy for other times
 import pandas as pd
 import numpy as np
