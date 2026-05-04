@@ -91,11 +91,11 @@ print("\nTesting set:", Counter(y_test))
 #selected_genes = X_train.columns[rv >= q75]
 
 # Apply SAME genes to BOTH train and test
-X_train = X_train[selected_genes]
-X_test = X_test.reindex(columns=selected_genes, fill_value=0)
+#X_train = X_train[selected_genes]
+#X_test = X_test.reindex(columns=selected_genes, fill_value=0)
 
 # Summary of variances in the final set
-print(X_train.var(axis=0).describe())
+#print(X_train.var(axis=0).describe())
 
 #first check without any hypertuning and cross-validation 
 rf_model = RandomForestClassifier(random_state=42, class_weight="balanced")
