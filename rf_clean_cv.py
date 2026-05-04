@@ -93,6 +93,9 @@ X_test = X_test.reindex(columns=selected_genes, fill_value=0)
 # Summary of variances in the final set
 print(X_train.var(axis=0).describe())
 
+#first check without any hypertuning and cross-validation 
+rf_model = RandomForestClassifier(random_state=42, class_weight="balanced")
+
 # Now train and predict
 rf_model.fit(X_train, y_train)
 y_pred = rf_model.predict(X_test)
@@ -222,7 +225,8 @@ nested_scores = cross_val_score(
     nested_gs,
     X,
     y_encoded,
-    cv=outer_cv
+    cv=outer_cv,
+    scoring="balanced_accuracy"
 )
 
 print("\nNested CV estimates how good your modeling strategy is.")
