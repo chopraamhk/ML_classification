@@ -28,10 +28,11 @@ keep_expressed = (df > threshold).sum(axis=1) > (min_percent * n_samples)
 df_filtered = df.loc[keep_expressed]
 
 print(f"Original genes: {len(keep_nonzero)}")
-print(f"Genes after 25% threshold filter: {len(df_filtered)}")
+print(f"Genes after 20% threshold filter: {len(df_filtered)}")
 
 #Apply Log2 transformation (Standard for gene expression to stabilise variance)
 df_log = np.log2(df_filtered + 1)
+
 print(f"Genes after log2 transformation: {len(df_log)}")
 
 #transpose so samples are rows and genes are columns 
@@ -58,12 +59,12 @@ X.columns = [str(c).replace('[', '').replace(']', '').replace('<', '') for c in 
 
 # Encode labels FIRST (important)
 label_encoder = LabelEncoder()
-y = label_encoder.fit_transform(y)
+y_encoded = label_encoder.fit_transform(y)
 
 # Train-test split
 
 print("\nsplitting the samples to 80:20 ratio (training:testing)")
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded)
 
 # Handle class imbalance for XGBoost
 #Dynamic scale_pos_weight (Calculate based on the current training split)
@@ -83,6 +84,7 @@ selected_genes = X_train.columns[rv >= q75]
 X_train = X_train[selected_genes]
 X_test = X_test.reindex(columns=selected_genes, fill_value=0)
 
+#variances in final set
 print(X_train.var(axis=0).describe())
 
 #------------------------------
@@ -91,6 +93,7 @@ print(X_train.var(axis=0).describe())
 
 pipeline = Pipeline([
     ('scaler', StandardScaler()), # Optional but keeps logic consistent
+    ('var', VarianceThreshold(threshold=q75)),
     ('xgb', XGBClassifier(scale_pos_weight=scale_pos_weight, eval_metric="logloss", random_state=42, n_jobs=-1))
 ])
 
@@ -110,7 +113,7 @@ print("\nInitiating cross validation below")
 
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-scores = cross_val_score(pipeline, X, y, cv=cv, scoring="balanced_accuracy", n_jobs=2)
+scores = cross_val_score(pipeline, X, y_encoded, cv=cv, scoring="balanced_accuracy", n_jobs=2)
 #balanced_accuracy avoids inflated performance estimates on imbalanced datasets
 
 print("\nCross validation (CV) Accuracy (Second check - without hypertuning):", scores.mean())
@@ -166,7 +169,7 @@ outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 grid_search_nested = GridSearchCV(pipeline, param_grid, cv=inner_cv, scoring="balanced_accuracy", n_jobs=2)
 
-nested_scores = cross_val_score(grid_search_nested, X, y, cv=outer_cv, n_jobs=2)
+nested_scores = cross_val_score(grid_search_nested, X, y_encoded, cv=outer_cv, n_jobs=2)
 
 np.save("nested_cv_accuracy_scores_xgboost_pipeline.npy", nested_scores)
 print("\nNested CV estimates how good your modeling strategy is.")
