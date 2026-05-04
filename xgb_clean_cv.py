@@ -8,6 +8,8 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from xgboost import XGBClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectPercentile, f_classif
+from sklearn.metrics import balanced_accuracy_score
 
 # Load data
 df = pd.read_csv('salmon_gene_tpm_qc_passed.txt', sep="\t", index_col=0)
@@ -76,26 +78,25 @@ print("Testing set:", Counter(y_test))
 
 #----------------------
 # On training data
-rv = X_train.var(axis=0)
-q75 = rv.quantile(0.75)
-selected_genes = X_train.columns[rv >= q75]
+#rv = X_train.var(axis=0)
+#q75 = rv.quantile(0.75)
+#selected_genes = X_train.columns[rv >= q75]
 
 # Apply SAME genes to BOTH train and test
-X_train = X_train[selected_genes]
-X_test = X_test.reindex(columns=selected_genes, fill_value=0)
+#X_train = X_train[selected_genes]
+#X_test = X_test.reindex(columns=selected_genes, fill_value=0)
 
 #variances in final set
-print(X_train.var(axis=0).describe())
+#print(X_train.var(axis=0).describe())
 
 #------------------------------
 
 # Baseline XGBoost (no tuning)
 
 pipeline = Pipeline([
-   # ('scaler', StandardScaler()), # Optional but keeps logic consistent
+    ('select', SelectPercentile(f_classif, percentile=25)),  # Top 25% by case/control separation
     ('xgb', XGBClassifier(scale_pos_weight=scale_pos_weight, eval_metric="logloss", random_state=42, n_jobs=-1))
 ])
-
 pipeline.fit(X_train, y_train)
 
 y_pred = pipeline.predict(X_test)
@@ -123,6 +124,7 @@ print("\nStd Dev in cross-validation (Second check - without hypertuning):", sco
 print("\nStarting hyperparameter tuning")
 
 param_grid = {
+     'select__percentile': [20, 25, 45, 50]  
     'xgb__n_estimators': [100, 300],
     'xgb__learning_rate': [0.01, 0.1],
     'xgb__max_depth': [3, 6],
@@ -147,11 +149,16 @@ print("\nBest score: ", grid_search.best_score_)
 
 print("\nTest results with CV and best grid tuned parameters")
 
-print("\nTest Accuracy with best grid tuned parameters:", accuracy_score(y_test, y_pred))
+print("\nTest Balance Accuracy with best grid tuned parameters:", accuracy_score_score(y_test, y_pred))
 
 print("\nClassification Report for test accuracy with best tuned parameters:\n", classification_report(y_test, y_pred))
 
 print("\nConfusion Matrix for test accuracy with best tuned parameters:\n", confusion_matrix(y_test, y_pred))
+
+importances = best_model.named_steps['xgb'].feature_importances_
+top_genes = X_train.columns[np.argsort(importances)[-20:]].tolist()
+print("Top 20 genes:", top_genes)
+joblib.dump(top_genes, "top_xgb_genes.pkl")
 
 joblib.dump(best_model, "xgb_model_pipeline.pkl")
 joblib.dump(grid_search, "xgb_grid_search_pipeline.pkl")
