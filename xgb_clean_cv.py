@@ -92,8 +92,7 @@ print(X_train.var(axis=0).describe())
 # Baseline XGBoost (no tuning)
 
 pipeline = Pipeline([
-    ('scaler', StandardScaler()), # Optional but keeps logic consistent
-    ('var', VarianceThreshold(threshold=q75)),
+   # ('scaler', StandardScaler()), # Optional but keeps logic consistent
     ('xgb', XGBClassifier(scale_pos_weight=scale_pos_weight, eval_metric="logloss", random_state=42, n_jobs=-1))
 ])
 
