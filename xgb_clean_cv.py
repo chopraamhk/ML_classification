@@ -1,5 +1,3 @@
-#below was for 118 samples
-
 import pandas as pd
 import numpy as np
 import joblib
@@ -12,7 +10,6 @@ from xgboost import XGBClassifier
 from sklearn.pipeline import Pipeline
 
 # Load data
-
 df = pd.read_csv('salmon_gene_tpm_qc_passed.txt', sep="\t", index_col=0)
 
 labels = pd.read_csv("metadata_only_qc_passed.txt", sep=",", index_col=0)
@@ -21,75 +18,74 @@ labels = pd.read_csv("metadata_only_qc_passed.txt", sep=",", index_col=0)
 keep_nonzero = (df > 0).sum(axis=1) > 0
 df = df.loc[keep_nonzero]
 
-#Keep genes expressed in at least 75% of samples with a value > 0
-threshold = 0
-min_percent = 0.75
+#Keep genes expressed in at least 20% of samples with a value > 0
+threshold = 1
+min_percent = 0.20
 n_samples = df.shape[1]
 
-# Logic: Sum how many samples are > 0, then check if that sum is >= 75% of total samples
+# Logic: Sum how many samples are > 1, then check if that sum is >= 20% of total samples
 keep_expressed = (df > threshold).sum(axis=1) > (min_percent * n_samples)
 df_filtered = df.loc[keep_expressed]
 
 print(f"Original genes: {len(keep_nonzero)}")
-print(f"Genes after 75% threshold filter: {len(df_filtered)}")
+print(f"Genes after 25% threshold filter: {len(df_filtered)}")
 
 #Apply Log2 transformation (Standard for gene expression to stabilise variance)
 df_log = np.log2(df_filtered + 1)
+print(f"Genes after log2 transformation: {len(df_log)}")
 
-#Variance filter 
-rv = df_log.var(axis=1)
+#transpose so samples are rows and genes are columns 
+df_T = df_log.T
+df_T.index.name = "Samples"
 
-#top 50%, we find the 50th percentile cut-off
-q50 = rv.quantile(0.50)
+# if your samples are the index after transpose
+df_T = df_T.reset_index().rename(columns={'index': 'Samples'})
 
-#keep genes where variance is greater than the 50th percentile 
-df_final = df_log[rv >= q50]
-
-#Results 
-print(f"Final gene count (Top 50% variable): {df_final.shape[0]}")
-
-# Summary of variances in the final set
-print(df_final.var(axis=1).describe())
-
-# Transpose: samples as rows
-df_T = df_final.T.reset_index().rename(columns={'index': 'Samples'})
 labels = labels.reset_index().rename(columns={'index': 'Samples'})
 
-# Merge expression + metadata
 merged_df = pd.merge(df_T, labels, on='Samples', how='inner')
 
-#this was manually checked in other jupyter-notebook 
-print("\nX = 7701 features (genes)")
+print(f"\nX = {len(df_log)} features (genes)")
 print("\ny = 118 cases/controls")
 
-# Define X and y
-X = merged_df.iloc[:, 1:7702]
-y_raw = merged_df.iloc[:, 7703]
+X = merged_df.iloc[:, 1:len(df_log) + 1]
 
+y = merged_df.iloc[:, len(df_log) + 2]
+
+----------------------------------
 #XGBoost can be picky about gene names (special characters)
 X.columns = [str(c).replace('[', '').replace(']', '').replace('<', '') for c in X.columns]
 
 # Encode labels FIRST (important)
 label_encoder = LabelEncoder()
-y = label_encoder.fit_transform(y_raw)
-
+y = label_encoder.fit_transform(y)
 
 # Train-test split
 
 print("\nsplitting the samples to 80:20 ratio (training:testing)")
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-print("\nTraining set:", Counter(y_train))
-print("Testing set:", Counter(y_test))
-
 # Handle class imbalance for XGBoost
 #Dynamic scale_pos_weight (Calculate based on the current training split)
 neg, pos = np.bincount(y_train)
 scale_pos_weight = neg / pos
 
-print("Training set:", Counter(y_train))
+print("\nTraining set:", Counter(y_train))
 print("Testing set:", Counter(y_test))
 
+----------------------
+# On training data
+rv = X_train.var(axis=0)
+q75 = rv.quantile(0.75)
+selected_genes = X_train.columns[rv >= q75]
+
+# Apply SAME genes to BOTH train and test
+X_train = X_train[selected_genes]
+X_test = X_test.reindex(columns=selected_genes, fill_value=0)
+
+print(X_train.var(axis=0).describe())
+
+------------------------------
 
 # Baseline XGBoost (no tuning)
 
