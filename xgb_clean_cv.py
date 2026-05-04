@@ -128,7 +128,6 @@ param_grid = {
     'xgb__learning_rate': [0.01, 0.1],
     'xgb__max_depth': [3, 6],
     'xgb__subsample': [0.7, 1.0],
-    'xgb__colsample_bytree': [0.7, 1.0],
     'xgb__colsample_bytree': [0.5, 1.0]
 }
 
