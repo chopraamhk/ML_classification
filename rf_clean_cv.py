@@ -35,39 +35,25 @@ print("\nRemoving genes with 0 value in count matrix")
 keep_nonzero = (df > 0).sum(axis=1) > 0
 df = df.loc[keep_nonzero]
 
-# Keep genes expressed in at least 75% of samples with a value > 0
-threshold = 0
-min_percent = 0.75
+# Keep genes expressed in at least 20% of samples with a value > 0
+threshold = 1
+min_percent = 0.20
 n_samples = df.shape[1]
 
-# Logic: Sum how many samples are > 0, then check if that sum is >= 75% of total samples
+# Logic: Sum how many samples are > 0, then check if that sum is >= 20% of total samples
 keep_expressed = (df > threshold).sum(axis=1) > (min_percent * n_samples)
 df_filtered = df.loc[keep_expressed]
 
 print(f"Original genes: {len(keep_nonzero)}")
-print(f"Genes after 75% threshold filter: {len(df_filtered)}")
+print(f"Genes after 20% threshold filter: {len(df_filtered)}")
 
 #Apply Log2 transformation (Standard for gene expression to stabilise variance)
 df_log = np.log2(df_filtered + 1)
 
-#Variance filter 
-rv = df_log.var(axis=1)
+print(f"Genes after log2 transformation: {len(df_log)}")
 
-#top 50%, we find the 50th percentile cut-off
-q50 = rv.quantile(0.50)
-
-#keep genes where variance is greater than the 50th percentile 
-df_final = df_log[rv >= q50]
-
-#Results 
-print(f"Final gene count (Top 50% variable): {df_final.shape[0]}")
-
-# Summary of variances in the final set
-print(df_final.var(axis=1).describe())
-
-#transpose
-df_T = df_final.T
-
+#transpose so samples are rows and genes are columns 
+df_T = df_log.T
 df_T.index.name = "Samples"
 
 # if your samples are the index after transpose
@@ -77,11 +63,11 @@ labels = labels.reset_index().rename(columns={'index': 'Samples'})
 
 merged_df = pd.merge(df_T, labels, on='Samples', how='inner')
 
-print("\nX = 7701 features (genes)")
+print(f"\nX = {len(df_log)} features (genes)")
 print("\ny = 118 cases/controls")
 
-X = merged_df.iloc[:,1:7702]
-y = merged_df.iloc[:, 7703]
+X = merged_df.iloc[:, 1:len(df_log) + 1]
+y = merged_df.iloc[:, len(df_log) + 2]
 
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(y)
@@ -96,20 +82,29 @@ X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2,
 print("\nTraining set:", Counter(y_train))
 print("\nTesting set:", Counter(y_test))
 
-#this is just encoding characters to numerals like case/control - 1/0.
-#label_encoder = LabelEncoder()
-#y_train = label_encoder.fit_transform(y_train)
-#y_test = label_encoder.transform(y_test)
+# On training data
+rv = X_train.var(axis=0)
+q75 = rv.quantile(0.75)
+selected_genes = X_train.columns[rv >= q75]
+
+# Apply SAME genes to BOTH train and test
+X_train = X_train[selected_genes]
+X_test = X_test.reindex(columns=selected_genes, fill_value=0)
+
+# Summary of variances in the final set
+print(X_train.var(axis=0).describe())
+
+# Now train and predict
+rf_model.fit(X_train, y_train)
+y_pred = rf_model.predict(X_test)
 
 #first check without any hypertuning and cross-validation 
 rf_model = RandomForestClassifier(random_state=42, class_weight="balanced")
 
 #For imbalanced gene-expression classification, 
 #using class_weight='balanced' with Random Forest is usually a good default. 
-#It often improves recall for the minority class with minimal extra tuning.rf_model.fit(X_train, y_train)
+#It often improves recall for the minority class with minimal extra tuning.
 #gives more weightage to minority class samples 
-
-y_pred = rf_model.predict(X_test)
 
 print("\n--- FIRST CHECK (Without Tuning) ---")
 
