@@ -52,7 +52,7 @@ X = merged_df.iloc[:, 1:len(df_log) + 1]
 
 y = merged_df.iloc[:, len(df_log) + 2]
 
-----------------------------------
+#----------------------------------
 #XGBoost can be picky about gene names (special characters)
 X.columns = [str(c).replace('[', '').replace(']', '').replace('<', '') for c in X.columns]
 
@@ -73,7 +73,7 @@ scale_pos_weight = neg / pos
 print("\nTraining set:", Counter(y_train))
 print("Testing set:", Counter(y_test))
 
-----------------------
+#----------------------
 # On training data
 rv = X_train.var(axis=0)
 q75 = rv.quantile(0.75)
@@ -85,7 +85,7 @@ X_test = X_test.reindex(columns=selected_genes, fill_value=0)
 
 print(X_train.var(axis=0).describe())
 
-------------------------------
+#------------------------------
 
 # Baseline XGBoost (no tuning)
 
