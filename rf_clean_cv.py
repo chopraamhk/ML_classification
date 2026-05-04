@@ -19,6 +19,9 @@ from sklearn.metrics import roc_auc_score, roc_curve, RocCurveDisplay
 from sklearn.model_selection import cross_val_predict
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import VarianceThreshold, SelectPercentile, f_classif
+from sklearn.feature_selection import SelectPercentile, f_classif
+from sklearn.ensemble import balanced_accuracy_score
+
 
 print("\nRunning Randomforest on 118 samples")
 
@@ -83,9 +86,9 @@ print("\nTraining set:", Counter(y_train))
 print("\nTesting set:", Counter(y_test))
 
 # On training data
-rv = X_train.var(axis=0)
-q75 = rv.quantile(0.75)
-selected_genes = X_train.columns[rv >= q75]
+#rv = X_train.var(axis=0)
+#q75 = rv.quantile(0.75)
+#selected_genes = X_train.columns[rv >= q75]
 
 # Apply SAME genes to BOTH train and test
 X_train = X_train[selected_genes]
@@ -123,6 +126,7 @@ print("\nInitiating cross validation below")
 
 # pipeline: it's safer for future additions.
 pipeline = Pipeline([
+    ('select', SelectPercentile(f_classif, percentile=25)),  # ~top 25% by ANOVA F-test
  #  ('var', VarianceThreshold(threshold=q75)),
     ('rf', RandomForestClassifier(random_state=42, class_weight="balanced"))
 ])
@@ -149,6 +153,7 @@ print("\nStd Dev in cross-validation (Second check - without hypertuning):", sco
 print("\nhypertuning model initiating")
 
 param_grid = {
+    'select__percentile': [20, 25, 45, 50, 70, 80]  
     'rf__n_estimators': [100, 300, 500],
     'rf__max_depth': [5, 10, 20],
     'rf__max_features': ["sqrt", "log2"],
@@ -183,7 +188,7 @@ print("\nBest score: ", grid_search.best_score_)
 
 print("\nTest results with CV and best grid tuned parameters")
 
-print("\nTest Accuracy with best grid tuned parameters:", accuracy_score(y_test, y_pred_tuned))
+print("\nTest Balanced Accuracy with best grid tuned parameters:", balanced_accuracy_score(y_test, y_pred_tuned))
 
 print("\nClassification Report for test accuracy with best tuned parameters:\n", classification_report(y_test, y_pred_tuned))
 
@@ -199,9 +204,6 @@ print("\nFinished cross validation")
 print("\nInitiating nested cross validation")
 #nested cross-validation 
 #below is for nested cross-validation 
-
-from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
 
 #rf_model = RandomForestClassifier(random_state=42)
 
