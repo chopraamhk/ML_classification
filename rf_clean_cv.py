@@ -126,8 +126,7 @@ print("\nInitiating cross validation below")
 
 # pipeline: it's safer for future additions.
 pipeline = Pipeline([
-    ('scaler', StandardScaler()),
-#    ('selector', SelectPercentile(f_classif, percentile=25)), # Keep top 25% of genes
+   ('var', VarianceThreshold(threshold=q75)),
     ('rf', RandomForestClassifier(random_state=42, class_weight="balanced"))
 ])
 
