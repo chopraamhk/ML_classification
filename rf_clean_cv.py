@@ -64,7 +64,7 @@ labels = labels.reset_index().rename(columns={'index': 'Samples'})
 merged_df = pd.merge(df_T, labels, on='Samples', how='inner')
 
 print(f"\nX = {len(df_log)} features (genes)")
-print("\ny = 118 cases/controls")
+print(f"\ny = {len(labels)} cases/controls")
 
 X = merged_df.iloc[:, 1:len(df_log) + 1]
 y = merged_df.iloc[:, len(df_log) + 2]
