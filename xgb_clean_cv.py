@@ -149,7 +149,7 @@ print("\nBest score: ", grid_search.best_score_)
 
 print("\nTest results with CV and best grid tuned parameters")
 
-print("\nTest Balance Accuracy with best grid tuned parameters:", accuracy_score_score(y_test, y_pred))
+print("\nTest Balance Accuracy with best grid tuned parameters:", accuracy_score(y_test, y_pred))
 
 print("\nClassification Report for test accuracy with best tuned parameters:\n", classification_report(y_test, y_pred))
 
